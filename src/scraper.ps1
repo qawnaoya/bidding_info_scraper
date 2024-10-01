@@ -24,7 +24,7 @@ $scrapeDatesRange = $scrapeStartDate.ToString("yyyy-MM-dd") + "/" + $scrapeEndDa
 # URLの作成
 $nvCollection = [System.Web.HttpUtility]::ParseQueryString([String]::Empty)
 $nvCollection.Add("Query", $query)
-$nvCollection.Add("FT_Issue_Date", $scrapeDatesRange)
+$nvCollection.Add("CFT_Issue_Date", $scrapeDatesRange)
 $nvCollection.Add("Count", $scrapeRows)
 
 $uriRequest = [System.UriBuilder]::new($apiFqdn)
