@@ -3,11 +3,13 @@ Param(
     [string]$query
 )
 
+Add-Type -AssemblyName System.Web
+
 $configFilePath = "./scraper.ini"
 
 $config = Get-Content -Path $configFilePath | Out-String | ConvertFrom-StringData
 
-$maxScapeRows = [int]$config.MAX_SCRAPE_ROWS
+$maxScrapeRows = [int]$config.MAX_SCRAPE_ROWS
 $scrapeRows = [int]$config.SCRAPE_ROWS
 $scrapeDaysDelta = [int]$config.SCRAPE_DAYS_DELTA
 $apiFqdn = [string]$config.API_FQDN
@@ -20,12 +22,19 @@ $scrapeStartDate = $scrapeEndDate.AddDays(-$scrapeDaysDelta)
 $scrapeDatesRange = $scrapeStartDate.ToString("yyyy-MM-dd") + "/" + $scrapeEndDate.ToString("yyyy-MM-dd")
 
 # URLの作成
-$apiUrl = $apiFqdn + "?Query=" + $query + "&CFT_Issue_Date=" + $scrapeDatesRange + "&Count=" + $scrapeRows
+$nvCollection = [System.Web.HttpUtility]::ParseQueryString([String]::Empty)
+$nvCollection.Add("Query", $query)
+$nvCollection.Add("FT_Issue_Date", $scrapeDatesRange)
+$nvCollection.Add("Count", $scrapeRows)
 
-Write-Host "API URL: $($apiUrl)"
+$uriRequest = [System.UriBuilder]::new($apiFqdn)
+$uriRequest.Query = $nvCollection.ToString()
+$requestUri = $uriRequest.Uri.OriginalString
+
+Write-Host "API URL: $($requestUri)"
 
 # GETリクエストの発行
-$response = Invoke-RestMethod -Uri $apiUrl -Method Get
+$response = Invoke-RestMethod -Uri $requestUri -Method Get
 
 # XML型へ変換
 $responseXML = [xml]$response
